@@ -1,0 +1,144 @@
+package org.eda1.examenSegundoParcial.ejercicio01;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Scanner;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+public class ProcesarDatos {
+
+	private TreeMap<String, TreeMap<String, TreeMap<String, DatosCiudad>>> mapa;
+
+	public ProcesarDatos() {
+		mapa = new TreeMap<String, TreeMap<String, TreeMap<String, DatosCiudad>>>();
+
+	}
+
+	public void cargarArchivo(String archivo) {
+		try {
+			Scanner f = new Scanner(new File(archivo));
+			while (f.hasNext()) {
+				String linea = f.nextLine();
+				Scanner l = new Scanner(linea);
+				while (l.hasNext()) {
+					TreeMap<String, TreeMap<String, DatosCiudad>> proy = new TreeMap<String, TreeMap<String, DatosCiudad>>();
+					TreeMap<String, DatosCiudad> ciu = new TreeMap<String, DatosCiudad>();
+					TreeSet<String> direcciones = new TreeSet<String>();
+					String empresas = l.next();
+					String proyectos = l.next();
+					String ciudad = l.next();
+					String pais = l.next();
+					String continente = l.next();
+					while (l.hasNext()) {
+						String direccion = l.next();
+						if (!direcciones.contains(direccion))
+							direcciones.add(direccion);
+					}
+
+					DatosCiudad datciu = new DatosCiudad(pais, continente,
+							direcciones);
+					ciu.put(ciudad, datciu);
+					proy.put(proyectos, ciu);
+					if (!mapa.containsKey(empresas))
+						mapa.put(empresas, proy);
+					else
+						mapa.get(empresas).put(proyectos, ciu);
+
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error en la lectura del fichero");
+		}
+
+	}
+
+	public int size() {
+		return mapa.size();
+	}
+
+	/**
+	 * implementar la consulta que devuelva las empresas que tienen proyectos en
+	 * ciudades europeas
+	 * 
+	 * @return
+	 */
+
+	// TreeMap(Empresas, TreeMap(Proyectos, TreeMap(Ciudades, DatosCiudad)))
+	public TreeMap<String, ArrayList<String>> consulta1() {
+		TreeMap<String, ArrayList<String>> lista = new TreeMap<String, ArrayList<String>>();
+		ArrayList<String> ciudades;
+
+		for (Entry<String, TreeMap<String, TreeMap<String, DatosCiudad>>> e : mapa
+				.entrySet()) {
+			for (Entry<String, TreeMap<String, DatosCiudad>> e2 : e.getValue()
+					.entrySet()) {
+				ciudades = new ArrayList<String>();
+				for (Entry<String, DatosCiudad> e3 : e2.getValue().entrySet()) {
+					if (e3.getValue().continente.contains("Europe")) {
+						for (int i = 0; i < e3.getValue().direcciones.size(); i++) {
+							Iterator<String> it = e3.getValue().direcciones
+									.iterator();
+							while (it.hasNext()) {
+								String ciudadString = it.next();
+								if (!ciudades.contains(ciudadString))
+									ciudades.add(ciudadString);
+							}
+						}
+						lista.put(e.getKey(), ciudades);
+					}
+				}
+			}
+
+		}
+
+		return lista;
+	}
+
+	/**
+	 * consulta que devuelva las empresas y los proyectos asociados a dichas
+	 * empresas que estén ubicadas en la misma dirección de una determinada
+	 * ciudad.
+	 * 
+	 * @return
+	 */
+	// TreeMap(Empresas, TreeMap(Proyectos, TreeMap(Ciudades, DatosCiudad)))
+	public TreeMap<String, ArrayList<String>> consulta2() {
+		// TreeMap<Calle>,ArrayList<String>>;
+		TreeMap<String, ArrayList<String>> lista = new TreeMap<String, ArrayList<String>>();
+		ArrayList<String> aux;
+		String ciudad ="";
+
+		for (Entry<String, TreeMap<String, TreeMap<String, DatosCiudad>>> e : mapa
+				.entrySet()) {
+			for (Entry<String, TreeMap<String, DatosCiudad>> e2 : e.getValue()
+					.entrySet()) {
+			
+				//proyectos = new ArrayList<String>();
+				for (Entry<String, DatosCiudad> e3 : e2.getValue().entrySet()) {
+					ciudad = e3.getKey();
+					TreeSet<String> direcciones = e3.getValue().direcciones;
+					Iterator <String> it = direcciones.iterator();
+					while (it.hasNext()){
+						String direccion = it.next();
+						if(lista.containsKey(direccion))
+							lista.get(direccion).add(e2.getKey());
+						else{
+							aux = new ArrayList<String>();
+							aux.add(e3.getKey());
+							aux.add(e2.getKey());
+							lista.put(direccion, aux);
+						}
+					}
+					
+				}
+			}
+		
+		}
+
+		System.out.println(lista);
+		return lista;
+	}
+}
